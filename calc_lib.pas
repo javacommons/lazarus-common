@@ -12,7 +12,11 @@ function sub(a,b:integer): integer;
 
 implementation
 
-uses __common, __resource, calc_res;
+uses __common, __resource
+  {$ifdef MSWINDOWS}
+  , calc_res
+  {$endif}
+  ;
 
 type
   TAdd2 = function(a: integer; b: integer): integer;
@@ -21,12 +25,18 @@ var
   handle: THandle;
 
 function add(a,b:integer): integer;
+{$ifdef MSWINDOWS}
 var
   Add2: TAdd2;
+  {$endif}
 begin
    //result:=a+b
+   {$ifdef MSWINDOWS}
    Add2 := TAdd2(GetProcAddress(Handle, 'add2'));
    Result := Add2(a, b);
+   {$else}
+   Result := a + b;
+   {$endif}
 end;
 
 function sub(a,b:integer): integer;
@@ -36,7 +46,9 @@ end;
 
 initialization
 begin
+  {$ifdef MSWINDOWS}
   handle := __resource.TResourceSystem.LoadDllByName('UNIT_CALC_LIB_CALC_DLL');
+  {$endif}
 end;
 
 finalization

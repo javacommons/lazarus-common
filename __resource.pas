@@ -1,3 +1,4 @@
+{$ifdef MSWINDOWS}
 unit __resource {namespace my_sample};
 
 {$mode objfpc}{$H+}
@@ -60,3 +61,10 @@ begin
 end;
 
 end.
+{$else}
+unit __resource {namespace my_sample};
+interface
+implementation
+end.
+{$endif}
+

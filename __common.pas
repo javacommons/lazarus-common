@@ -10,7 +10,8 @@ uses
   SysUtils,
   //FileUtil,
   Variants,
-  fpjson, fphttpclient, opensslsockets;
+  fpjson, fphttpclient, opensslsockets,
+  Dialogs;
 
 function os_bit(): uint32;
 function home_dir(): string;
@@ -31,11 +32,14 @@ procedure SafeWrite(msg: variant);
 procedure SafeWriteLn(msg: variant);
 procedure echo(msg: PChar; title: string = '');
 procedure echo(msg: pwidechar; title: string = '');
+procedure echo(msg: string; title: string = '');
+procedure echo(msg: WideString; title: string = '');
+{$ifdef MSWINDOWS}
 procedure echo(msg: variant; title: string = '');
-procedure echo(msg: string; title: string);
-procedure echo(msg: WideString; title: string);
+{$endif}
 procedure echo(msg: TJSONData; title: string = '');
 procedure printf(const fmt: string; const args: array of const);
+{$ifdef MSWINDOWS}
 procedure msgbox(msg: string; title: string = 'Message');
 procedure msgbox(msg: WideString; title: WideString = 'Message');
 function yesno(msg: string; title: string = 'Confirm'): boolean;
@@ -45,6 +49,7 @@ function resource_sha256(Name: string): string;
 function applicaton_fullpath(): string;
 function resource_to_file(Name: string; fileName: string): boolean;
 function load_dll_from_resource_temp(Name: string): THandle;
+{$endif}
 //function load_dll_from_resource(Name: string): THandle;
 function StreamsAreIdentical(Stream1, Stream2: TStream): boolean;
 function FormatByteSize(ABytes: int64): string;
@@ -57,7 +62,9 @@ implementation
 uses
   LazUTF8
   , FileUtil
+  {$ifdef MSWINDOWS}
   , sha2
+  {$endif}
   , zipper
   , __win32
   , __json
@@ -65,7 +72,11 @@ uses
 
 function os_bit(): uint32;
 begin
+  {$ifdef MSWINDOWS}
   Result := sizeof(size_t) * 8;
+  {$else}
+  Result := 64;
+  {$endif}
 end;
 
 function home_dir(): string;
@@ -173,7 +184,7 @@ begin
     szip.UnZipAllFiles();
     if not __fs.RenameDirectory(tempDir, destDir) then
     begin
-      msgbox('extract_zip() rename failed');
+      SafeWriteLn('extract_zip() rename failed');
     end;
   finally
     szip.Free;
@@ -186,18 +197,12 @@ begin
 end;
 
 function temp_dir: string;
-{
-var
-  pc: pwidechar;
 begin
-  pc := pwidechar(StrAlloc((MAX_PATH + 1) * 2));
-  GetTempPathW(MAX_PATH, pc);
-  Result := UTF16ToUTF8(WideString(pc));
-  StrDispose(pc);
-end;
-}
-begin
+  {$ifdef MSWINDOWS}
   Result := Win32.GetTempPath;
+  {$else}
+  Result := '/tmp';
+  {$endif}
 end;
 
 procedure pause();
@@ -205,9 +210,24 @@ begin
   pause('Click OK to continue');
 end;
 
+procedure msleep (ms: QWord);
+  var start: QWord;
+  delta: QWord;
+begin
+ start := GetTickCount64;
+ repeat
+  //application.ProcessMessages;
+  delta := GetTickCount64 - start;
+ until delta>= ms;
+end;
+
 procedure pause(msg: string);
 begin
+  {$ifdef MSWINDOWS}
   Win32.MessageBox(0, msg, 'Pause');
+  {$else}
+  msleep(5000);
+  {$endif}
 end;
 
 procedure SafeWrite(msg: string);
@@ -328,11 +348,11 @@ begin
 end;
 
 
+{$ifdef MSWINDOWS}
 procedure msgbox(msg: string; title: string);
 begin
   Win32.MessageBox(0, msg, title);
 end;
-
 
 procedure msgbox(msg: WideString; title: WideString);
 begin
@@ -459,6 +479,7 @@ begin
   end;
   Result := Win32.LoadLibrary(add2rcdllPath);
 end;
+{$endif}
 
 { https://stackoverflow.com/questions/4605908/delphi-function-comparing-content-of-two-tstream }
 function StreamsAreIdentical(Stream1, Stream2: TStream): boolean;

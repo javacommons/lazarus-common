@@ -8,10 +8,14 @@ uses
   Classes,
   SysUtils,
   LazUtf8,
-  __nw_res,
   __common,
   fphttpclient, opensslsockets,
-  __fs, __win32;
+  __fs
+  {$ifdef MSWINDOWS}
+  , __win32
+  __nw_res,
+  {$endif}
+  ;
 
 type
   TNetworkSystem = class
@@ -55,7 +59,7 @@ end;
 
 procedure TNetworkSystem.CB_OnHeaders(Sender: TObject);
 var
-  index: size_t;
+  index: integer;
 begin
   m_content_length := -1;
   for index := 0 to Pred(m_client.ResponseHeaders.Count) do
@@ -112,6 +116,7 @@ var
 
 initialization
 begin
+  {$ifdef MSWINDOWS}
   sha1 := resource_sha256('LIBEAY32_DLL');
   sha2 := resource_sha256('SSLEAY32_DLL');
   tempDir := Utf8ToUtf16(Format('%s\tmp.openssl%u.%s.%s', [temp_dir, os_bit, sha1, sha2]));
@@ -128,6 +133,7 @@ begin
   Win32.LoadLibrary(dllPath);
   dllPath := tempDir + '\ssleay32.dll';
   Win32.LoadLibrary(dllPath);
+  {$endif}
 end;
 
 end.
