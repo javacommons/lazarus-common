@@ -21,6 +21,7 @@ function home_dir(): string;
 function config_dir(): string;
 function config_json(init: string = '{}'): string;
 //function get_string_from_url(url: string): string;
+function GetFileContent(FileName: string): rawbytestring;
 function download_to_file_from_url(dest: string; url: string): boolean;
 function download_to_file_from_url_w_callback(dest: string; url: string;
   cb1: TNotifyEvent; cb2: TDataEvent): boolean;
@@ -125,6 +126,21 @@ begin
 end;
 }
 
+function GetFileContent(FileName: string): rawbytestring;
+var
+  FileStream: TFileStream;
+  rbs: rawbytestring;
+begin
+  FileStream := TFileStream.Create('ファイル名', fmOpenRead);
+  try
+    SetLength(rbs, FileStream.Size);
+    FileStream.Read(rbs[1], FileStream.Size);
+  finally
+    FileStream.Free;
+  end;
+  Result := rbs;
+end;
+
 function download_to_file_from_url(dest: string; url: string): boolean;
 var
   guid: TGuid;
@@ -213,15 +229,16 @@ begin
   pause('Click OK to continue');
 end;
 
-procedure msleep (ms: QWord);
-  var start: QWord;
+procedure msleep(ms: QWord);
+var
+  start: QWord;
   delta: QWord;
 begin
- start := GetTickCount64;
- repeat
-  //application.ProcessMessages;
-  delta := GetTickCount64 - start;
- until delta>= ms;
+  start := GetTickCount64;
+  repeat
+    //application.ProcessMessages;
+    delta := GetTickCount64 - start;
+  until delta >= ms;
 end;
 
 procedure pause(msg: string);
@@ -238,6 +255,7 @@ begin
   try
     Write(msg);
   except
+    ;
   end;
 end;
 
@@ -246,6 +264,7 @@ begin
   try
     Write(Utf16ToUtf8(msg));
   except
+    ;
   end;
 end;
 
@@ -254,6 +273,7 @@ begin
   try
     Write(msg);
   except
+    ;
   end;
 end;
 
@@ -262,6 +282,7 @@ begin
   try
     WriteLn();
   except
+    ;
   end;
 end;
 
@@ -270,6 +291,7 @@ begin
   try
     WriteLn(msg);
   except
+    ;
   end;
 end;
 
@@ -301,6 +323,7 @@ begin
   try
     WriteLn(msg);
   except
+    ;
   end;
 end;
 
@@ -482,6 +505,7 @@ begin
   end;
   Result := Win32.LoadLibrary(add2rcdllPath);
 end;
+
 {$endif}
 
 { https://stackoverflow.com/questions/4605908/delphi-function-comparing-content-of-two-tstream }
@@ -565,26 +589,28 @@ end;
 
 function SecondsToTimeString(n: integer): string;
 var
-  TotalSeconds: Integer;
-  Hours, Minutes, Seconds: Integer;
-  TimeString: String;
+  TotalSeconds: integer;
+  Hours, Minutes, Seconds: integer;
+  TimeString: string;
 begin
   TotalSeconds := n;
   Hours := TotalSeconds div 3600;
   Minutes := (TotalSeconds mod 3600) div 60;
   Seconds := TotalSeconds mod 60;
   //TimeString := Format('%2.2d時間%2.2d分%2.2d秒', [Hours, Minutes, Seconds]);
-  if Hours > 0 then TimeString := Format('%2.2d時間%2.2d分%2.2d秒', [Hours, Minutes, Seconds])
+  if Hours > 0 then TimeString :=
+      Format('%2.2d時間%2.2d分%2.2d秒', [Hours, Minutes, Seconds])
   else if Minutes > 0 then TimeString := Format('%2.2d分%2.2d秒', [Minutes, Seconds])
-  else TimeString := Format('%2.2d秒', [Seconds]);
+  else
+    TimeString := Format('%2.2d秒', [Seconds]);
   Result := TimeString;
 end;
 
 function MillisecondsToTimeString(n: integer): string;
 var
-  TotalMilliseconds: Integer;
-  Hours, Minutes, Seconds, Milli: Integer;
-  TimeString: String;
+  TotalMilliseconds: integer;
+  Hours, Minutes, Seconds, Milli: integer;
+  TimeString: string;
 begin
   TotalMilliseconds := n;
   Hours := TotalMilliseconds div 3600000;
@@ -592,9 +618,12 @@ begin
   Seconds := (TotalMilliseconds mod (3600000 div 60)) div 1000;
   Milli := TotalMilliseconds mod 1000;
   //TimeString := Format('%2.2d時間%2.2d分%2.2d.%3.3d秒', [Hours, Minutes, Seconds, Milli]);
-  if Hours > 0 then TimeString := Format('%2.2d時間%2.2d分%2.2d.%3.3d秒', [Hours, Minutes, Seconds, Milli])
-  else if Minutes > 0 then TimeString := Format('%2.2d分%2.2d.%3.3d秒', [Minutes, Seconds, Milli])
-  else TimeString := Format('%2.2d.%3.3d秒', [Seconds, Milli]);
+  if Hours > 0 then TimeString :=
+      Format('%2.2d時間%2.2d分%2.2d.%3.3d秒', [Hours, Minutes, Seconds, Milli])
+  else if Minutes > 0 then TimeString :=
+      Format('%2.2d分%2.2d.%3.3d秒', [Minutes, Seconds, Milli])
+  else
+    TimeString := Format('%2.2d.%3.3d秒', [Seconds, Milli]);
   Result := TimeString;
 end;
 
