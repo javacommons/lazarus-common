@@ -13,7 +13,7 @@ uses
   __fs
   {$ifdef MSWINDOWS}
   , __win32
-  __nw_res,
+  , __nw_res
   {$endif}
   ;
 
