@@ -10,7 +10,10 @@ uses
   SysUtils,
   //FileUtil,
   Variants,
-  fpjson, fphttpclient, opensslsockets,
+  fpjson, fphttpclient,
+  {$ifdef MSWINDOWS}
+  opensslsockets,
+  {$endif}
   Dialogs;
 
 function os_bit(): uint32;
